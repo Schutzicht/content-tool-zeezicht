@@ -187,7 +187,7 @@ const avatars: Record<string, string> = {
                     draggable="true" 
                     data-idea-id={idea.id}
                     data-idea={Buffer.from(JSON.stringify(idea)).toString('base64')}
-                    class="bg-brand-sky border border-brand-cyan/20 p-2 rounded cursor-pointer hover:shadow-sm transition-all group/card relative idea-card"
+                    class="bg-brand-sky border border-brand-cyan/20 p-2 rounded cursor-pointer hover:shadow-sm transition-all relative idea-card"
                   >
                      <div class="flex items-center gap-1.5 mb-1">
                        {avatars[idea.submitter] ? (
@@ -198,10 +198,24 @@ const avatars: Record<string, string> = {
                          </div>
                        )}
                        <span class="text-[10px] font-semibold text-brand-teal truncate">{idea.submitter}</span>
-                       <span class={`ml-auto w-2 h-2 rounded-full ${idea.status === 'done' ? 'bg-green-500' : idea.status === 'in progress' ? 'bg-yellow-400' : 'bg-gray-300'}`} title={idea.status}></span>
                      </div>
-                     <p class="text-[11px] leading-tight text-brand-navy line-clamp-3 break-words">{idea.idea}</p>
-                     {idea.final_text && <span class="text-[9px] mt-0.5 inline-flex items-center gap-0.5 text-green-600 font-medium">✅ Post klaar</span>}
+                     <p class="text-[11px] leading-tight text-brand-navy line-clamp-2 break-words mb-1">{idea.idea}</p>
+                     <div class="flex items-center justify-between gap-1">
+                       <form method="POST" class="status-form" onclick="event.stopPropagation()">
+                         <input type="hidden" name="id" value={idea.id} />
+                         <input type="hidden" name="action" value="update_status" />
+                         <select name="status" onchange="this.form.submit()" class={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold cursor-pointer border-0 focus:outline-none ${
+                           idea.status === 'done' ? 'bg-green-100 text-green-700' :
+                           idea.status === 'in progress' ? 'bg-yellow-100 text-yellow-800' :
+                           'bg-gray-200 text-gray-600'
+                         }`}>
+                           <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ Wacht</option>
+                           <option value="in progress" selected={idea.status === 'in progress'}>🔄 Bezig</option>
+                           <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
+                         </select>
+                       </form>
+                       {idea.final_text && <span class="text-[8px] text-green-600 font-medium">📝</span>}
+                     </div>
                   </div>
                 ))}
               </div>
