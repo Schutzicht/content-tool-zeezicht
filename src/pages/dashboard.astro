@@ -202,18 +202,6 @@ const avatars: Record<string, string> = {
                      </div>
                      <p class="text-[11px] leading-tight text-brand-navy line-clamp-3 break-words">{idea.idea}</p>
                      {idea.final_text && <span class="text-[9px] mt-0.5 inline-flex items-center gap-0.5 text-green-600 font-medium">✅ Post klaar</span>}
-
-                     <!-- Status Quick Update Overlay (appears on card hover) -->
-                     <form method="POST" class="absolute inset-0 bg-white/95 opacity-0 group-hover/card:opacity-100 flex flex-col items-center justify-center transition-opacity rounded p-1">
-                        <input type="hidden" name="id" value={idea.id} />
-                        <input type="hidden" name="action" value="update_status" />
-                        <select name="status" onchange="this.form.submit()" class="text-[10px] p-1 border border-gray-300 rounded block w-full mb-1 bg-white cursor-pointer focus:outline-none">
-                           <option value="pending" selected={idea.status === 'pending' || !idea.status}>Wacht</option>
-                           <option value="in progress" selected={idea.status === 'in progress'}>Bezig</option>
-                           <option value="done" selected={idea.status === 'done'}>Klaar</option>
-                        </select>
-                        <button type="button" formmethod="POST" name="action" value="delete" class="text-[10px] text-red-600 hover:text-red-800" onclick="if(confirm('Verwijderen?')) { this.form.action.value='delete'; this.form.submit(); }">Verwijder</button>
-                     </form>
                   </div>
                 ))}
               </div>
