@@ -20,6 +20,15 @@ if (Astro.request.method === 'POST') {
       const plannedDate = data.get('planned_date'); // e.g. "2026-03-12" or "null" (backlog)
       const { error } = await supabase.from('content_ideas').update({ planned_date: plannedDate === 'null' ? null : plannedDate?.toString() }).eq('id', id.toString());
       if (error) console.error(error);
+    } else if (id && action === 'update_final') {
+      const finalText = data.get('final_text');
+      const finalImageUrl = data.get('final_image_url');
+      const { error } = await supabase.from('content_ideas').update({
+        final_text: finalText?.toString() || null,
+        final_image_url: finalImageUrl?.toString() || null,
+        status: 'done'
+      }).eq('id', id.toString());
+      if (error) console.error(error);
     }
   } catch (err) {
     console.error('Action failed:', err);
@@ -40,6 +49,8 @@ const allIdeas = (rows || []) as {
   status: string;
   planned_date: string | null;
   created_at: string;
+  final_text: string | null;
+  final_image_url: string | null;
 }[];
 
 // --- LOGIC: Calendar Calculation ---
@@ -191,6 +202,7 @@ const avatars: Record<string, string> = {
                        <span class={`ml-auto w-2 h-2 rounded-full ${idea.status === 'done' ? 'bg-green-500' : idea.status === 'in progress' ? 'bg-yellow-400' : 'bg-gray-300'}`} title={idea.status}></span>
                      </div>
                      <p class="text-[11px] leading-tight text-brand-navy line-clamp-3 break-words">{idea.idea}</p>
+                     {idea.final_text && <span class="text-[9px] mt-0.5 inline-flex items-center gap-0.5 text-green-600 font-medium">✅ Post klaar</span>}
 
                      <!-- Status Quick Update Overlay (appears on card hover) -->
                      <form method="POST" class="absolute inset-0 bg-white/95 opacity-0 group-hover/card:opacity-100 flex flex-col items-center justify-center transition-opacity rounded p-1">
@@ -258,6 +270,7 @@ const avatars: Record<string, string> = {
                </div>
                
                <p class="text-sm text-brand-slate line-clamp-3 mb-2">{idea.idea}</p>
+               {idea.final_text && <span class="text-[9px] inline-flex items-center gap-0.5 text-green-600 font-medium mb-1">✅ Post klaar</span>}
                
                {idea.hook && (
                  <p class="text-xs text-brand-teal bg-brand-sky/50 p-1.5 rounded truncate mb-1">
@@ -327,6 +340,52 @@ const avatars: Record<string, string> = {
                <span>Doelpagina</span>
              </a>
           </div>
+        </div>
+
+        <!-- Uitwerking Section (Pheadra fills in, team copies) -->
+        <div class="pt-4 border-t border-gray-100">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-brand-teal flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+              Uitwerking door Pheadra
+            </h4>
+            <span id="modal-final-status" class="text-[10px] px-2 py-0.5 rounded-full font-medium"></span>
+          </div>
+          
+          <!-- View mode: shows the final post when it exists -->
+          <div id="modal-final-view" class="hidden space-y-3">
+            <div class="bg-gradient-to-br from-brand-sky to-white p-4 rounded-lg border border-brand-cyan/20">
+              <p id="modal-final-text-display" class="text-brand-navy text-sm leading-relaxed whitespace-pre-wrap"></p>
+            </div>
+            <div id="modal-final-image-view" class="hidden">
+              <img id="modal-final-image-display" src="" alt="Post visual" class="rounded-lg border border-gray-200 max-h-48 w-full object-cover" />
+            </div>
+            <div class="flex gap-2">
+              <button id="modal-copy-btn" type="button" class="flex-1 text-xs bg-brand-cyan text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                Kopieer tekst
+              </button>
+              <button id="modal-edit-btn" type="button" class="text-xs bg-gray-100 text-brand-slate px-3 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors cursor-pointer">Bewerken</button>
+            </div>
+          </div>
+
+          <!-- Edit mode: form to add/edit the final post -->
+          <form id="modal-final-form" method="POST" class="space-y-3">
+            <input type="hidden" name="action" value="update_final" />
+            <input type="hidden" name="id" id="modal-final-id" />
+            <div>
+              <label class="text-xs font-medium text-brand-slate block mb-1">LinkedIn Tekst</label>
+              <textarea id="modal-final-text" name="final_text" rows="5" placeholder="Schrijf hier de definitieve LinkedIn post tekst..." class="w-full text-sm border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 focus:border-brand-cyan resize-y bg-white"></textarea>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-brand-slate block mb-1">Afbeelding URL (optioneel)</label>
+              <input type="url" id="modal-final-image" name="final_image_url" placeholder="https://drive.google.com/... of directe link naar afbeelding" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 focus:border-brand-cyan bg-white" />
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="flex-1 text-xs bg-brand-cyan text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-teal transition-colors cursor-pointer">Opslaan</button>
+              <button id="modal-cancel-edit" type="button" class="text-xs bg-gray-100 text-brand-slate px-3 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors hidden cursor-pointer">Annuleren</button>
+            </div>
+          </form>
         </div>
       </div>
       
@@ -490,6 +549,80 @@ const avatars: Record<string, string> = {
              idea.status === 'in progress' ? 'bg-yellow-100 text-yellow-800' :
              'bg-gray-200 text-gray-700'
           }`;
+
+          // --- Uitwerking Section Logic ---
+          const finalView = document.getElementById('modal-final-view');
+          const finalForm = document.getElementById('modal-final-form');
+          const finalStatus = document.getElementById('modal-final-status');
+          const cancelEditBtn = document.getElementById('modal-cancel-edit');
+          const editBtn = document.getElementById('modal-edit-btn');
+
+          // Set the hidden ID for the form
+          document.getElementById('modal-final-id').value = idea.id;
+
+          if (idea.final_text) {
+            // Show view mode with the final post
+            document.getElementById('modal-final-text-display').textContent = idea.final_text;
+            finalView.classList.remove('hidden');
+            finalForm.classList.add('hidden');
+            finalStatus.textContent = '✅ Klaar voor publicatie';
+            finalStatus.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700';
+
+            // Pre-fill form for editing
+            document.getElementById('modal-final-text').value = idea.final_text;
+            document.getElementById('modal-final-image').value = idea.final_image_url || '';
+
+            // Image preview
+            const imgView = document.getElementById('modal-final-image-view');
+            const imgDisplay = document.getElementById('modal-final-image-display');
+            if (idea.final_image_url) {
+              imgDisplay.src = idea.final_image_url;
+              imgView.classList.remove('hidden');
+            } else {
+              imgView.classList.add('hidden');
+            }
+
+            cancelEditBtn.classList.remove('hidden');
+          } else {
+            // Show edit form directly
+            finalView.classList.add('hidden');
+            finalForm.classList.remove('hidden');
+            finalStatus.textContent = 'Nog niet uitgewerkt';
+            finalStatus.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700';
+            document.getElementById('modal-final-text').value = '';
+            document.getElementById('modal-final-image').value = '';
+            cancelEditBtn.classList.add('hidden');
+          }
+
+          // Edit button handler
+          if (editBtn) {
+            editBtn.onclick = () => {
+              finalView.classList.add('hidden');
+              finalForm.classList.remove('hidden');
+            };
+          }
+
+          // Cancel edit button handler  
+          if (cancelEditBtn) {
+            cancelEditBtn.onclick = () => {
+              finalForm.classList.add('hidden');
+              finalView.classList.remove('hidden');
+            };
+          }
+
+          // Copy button handler
+          const copyBtn = document.getElementById('modal-copy-btn');
+          if (copyBtn) {
+            copyBtn.onclick = () => {
+              const text = idea.final_text || '';
+              navigator.clipboard.writeText(text).then(() => {
+                copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Gekopieerd!';
+                setTimeout(() => {
+                  copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Kopieer tekst';
+                }, 2000);
+              });
+            };
+          }
 
           if (modal) modal.classList.remove('hidden');
         } catch (err) {
