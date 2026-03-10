@@ -351,10 +351,10 @@ const avatars: Record<string, string> = {
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
                   Vergroot
                 </button>
-                <a id="modal-download-btn" href="#" download class="text-xs bg-brand-teal text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-navy transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                <button id="modal-download-btn" type="button" class="text-xs bg-brand-teal text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-navy transition-colors inline-flex items-center gap-1.5 cursor-pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                   Download
-                </a>
+                </button>
               </div>
             </div>
             <div class="flex gap-2">
@@ -599,7 +599,7 @@ const avatars: Record<string, string> = {
             const downloadBtn = document.getElementById('modal-download-btn');
             if (idea.final_image_url) {
               imgDisplay.src = idea.final_image_url;
-              if (downloadBtn) downloadBtn.href = idea.final_image_url;
+              if (downloadBtn) downloadBtn.dataset.url = idea.final_image_url;
               imgView.classList.remove('hidden');
             } else {
               imgView.classList.add('hidden');
@@ -737,6 +737,31 @@ const avatars: Record<string, string> = {
         if (src && lightboxImg && lightbox) {
           lightboxImg.src = src;
           lightbox.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Download button: fetch as blob for cross-origin download
+    const dlBtn = document.getElementById('modal-download-btn');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', async () => {
+        const url = dlBtn.dataset.url;
+        if (!url) return;
+        try {
+          dlBtn.textContent = 'Downloaden...';
+          const res = await fetch(url);
+          const blob = await res.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = 'post-afbeelding.' + (blob.type.split('/')[1] || 'jpg');
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+          dlBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Download';
+        } catch (err) {
+          dlBtn.textContent = 'Download mislukt';
         }
       });
     }
