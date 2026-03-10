@@ -176,7 +176,7 @@ const avatars: Record<string, string> = {
                   <div 
                     draggable="true" 
                     data-idea-id={idea.id}
-                    data-idea={JSON.stringify(idea)}
+                    data-idea={Buffer.from(JSON.stringify(idea)).toString('base64')}
                     class="bg-brand-sky border border-brand-cyan/20 p-2 rounded cursor-pointer hover:shadow-sm transition-all group/card relative idea-card"
                   >
                      <div class="flex items-center gap-1.5 mb-1">
@@ -232,7 +232,7 @@ const avatars: Record<string, string> = {
             <div 
               draggable="true" 
               data-idea-id={idea.id}
-              data-idea={JSON.stringify(idea)}
+              data-idea={Buffer.from(JSON.stringify(idea)).toString('base64')}
               class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm cursor-pointer hover:shadow hover:border-brand-cyan transition-all group relative idea-card"
             >
                <div class="flex items-start justify-between gap-2 mb-2">
@@ -425,7 +425,7 @@ const avatars: Record<string, string> = {
         if (!dataStr) return;
         
         try {
-          const idea = JSON.parse(dataStr);
+          const idea = JSON.parse(atob(dataStr));
           
           const modalAvatar = document.getElementById('modal-avatar')!;
           modalAvatar.innerHTML = '';
