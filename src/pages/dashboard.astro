@@ -346,7 +346,7 @@ const avatars: Record<string, string> = {
 
   // Setup HTML5 Drag and Drop logic
   document.addEventListener('DOMContentLoaded', () => {
-    let draggedIdeaId: string | null = null;
+    let draggedIdeaId = null;
     let isDragging = false;
     
     // 1. Draggable items (Cards)
@@ -354,17 +354,15 @@ const avatars: Record<string, string> = {
     draggableItems.forEach(item => {
       item.addEventListener('dragstart', (e) => {
         isDragging = true;
-        draggedIdeaId = (e.target as HTMLElement).getAttribute('data-idea-id');
-        // Slight opacity makes it look like it's being picked up
-        setTimeout(() => (e.target as HTMLElement).classList.add('opacity-50'), 0);
+        draggedIdeaId = e.target.getAttribute('data-idea-id');
+        setTimeout(() => e.target.classList.add('opacity-50'), 0);
       });
       
       item.addEventListener('dragend', (e) => {
-        setTimeout(() => isDragging = false, 50); // slight delay to prevent click firing immediately
-        (e.target as HTMLElement).classList.remove('opacity-50');
+        setTimeout(() => { isDragging = false; }, 50);
+        e.target.classList.remove('opacity-50');
         draggedIdeaId = null;
         
-        // Cleanup all dropzone highlights
         document.querySelectorAll('[data-dropzone="true"]').forEach(zone => {
           zone.classList.remove('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
         });
@@ -376,29 +374,29 @@ const avatars: Record<string, string> = {
     dropZones.forEach(zone => {
       zone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        const dateAttr = (e.currentTarget as HTMLElement).getAttribute('data-date');
+        const dateAttr = e.currentTarget.getAttribute('data-date');
         if (dateAttr !== '') {
-           (e.currentTarget as HTMLElement).classList.add('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
+           e.currentTarget.classList.add('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
         }
       });
 
       zone.addEventListener('dragleave', (e) => {
-        (e.currentTarget as HTMLElement).classList.remove('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
+        e.currentTarget.classList.remove('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
       });
 
       zone.addEventListener('drop', (e) => {
         e.preventDefault();
-        (e.currentTarget as HTMLElement).classList.remove('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
+        e.currentTarget.classList.remove('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
         
-        const targetDate = (e.currentTarget as HTMLElement).getAttribute('data-date');
+        const targetDate = e.currentTarget.getAttribute('data-date');
         if (draggedIdeaId && targetDate !== '') {
-          const form = document.getElementById('move-form') as HTMLFormElement;
-          const idInput = document.getElementById('move-id') as HTMLInputElement;
-          const dateInput = document.getElementById('move-date') as HTMLInputElement;
+          const form = document.getElementById('move-form');
+          const idInput = document.getElementById('move-id');
+          const dateInput = document.getElementById('move-date');
           
           if (form && idInput && dateInput) {
             idInput.value = draggedIdeaId;
-            dateInput.value = targetDate as string;
+            dateInput.value = targetDate;
             form.submit();
           }
         }
@@ -411,23 +409,27 @@ const avatars: Record<string, string> = {
 
     document.querySelectorAll('.idea-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        // Ignore clicks on form elements inside the card
-        if ((e.target as HTMLElement).tagName.toLowerCase() === 'select' || 
-            (e.target as HTMLElement).tagName.toLowerCase() === 'button' ||
-            (e.target as HTMLElement).tagName.toLowerCase() === 'option') {
+        if (e.target.tagName.toLowerCase() === 'select' || 
+            e.target.tagName.toLowerCase() === 'button' ||
+            e.target.tagName.toLowerCase() === 'option') {
           return;
         }
 
-        // Ignore if we were just dragging
         if (isDragging) return;
 
         const dataStr = card.getAttribute('data-idea');
         if (!dataStr) return;
         
         try {
-          const idea = JSON.parse(atob(dataStr));
+          // Decode URL-safe UTF-8 base64
+          let idea;
+          try {
+             idea = JSON.parse(decodeURIComponent(escape(atob(dataStr))));
+          } catch(err) {
+             idea = JSON.parse(atob(dataStr));
+          }
           
-          const modalAvatar = document.getElementById('modal-avatar')!;
+          const modalAvatar = document.getElementById('modal-avatar');
           modalAvatar.innerHTML = '';
           const avatarUrl = window.avatarsMap ? window.avatarsMap[idea.submitter] : null;
           
@@ -443,40 +445,40 @@ const avatars: Record<string, string> = {
              modalAvatar.className = 'w-10 h-10 rounded-full bg-brand-sky text-brand-cyan flex justify-center items-center font-bold text-lg border-2 border-white shadow-sm';
           }
 
-          document.getElementById('modal-submitter')!.textContent = idea.submitter;
+          document.getElementById('modal-submitter').textContent = idea.submitter;
           
           const createdDate = new Date(idea.created_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
-          document.getElementById('modal-date')!.textContent = `Ingediend op ${createdDate}`;
-          document.getElementById('modal-idea')!.textContent = idea.idea;
+          document.getElementById('modal-date').textContent = `Ingediend op ${createdDate}`;
+          document.getElementById('modal-idea').textContent = idea.idea;
 
-          const hookContainer = document.getElementById('modal-hook-container')!;
+          const hookContainer = document.getElementById('modal-hook-container');
           if (idea.hook) {
-            document.getElementById('modal-hook')!.textContent = idea.hook;
+            document.getElementById('modal-hook').textContent = idea.hook;
             hookContainer.classList.remove('hidden');
           } else {
             hookContainer.classList.add('hidden');
           }
 
-          const visContainer = document.getElementById('modal-visuals-container')!;
+          const visContainer = document.getElementById('modal-visuals-container');
           if (idea.visuals) {
-            const visAnchor = document.getElementById('modal-visuals') as HTMLAnchorElement;
+            const visAnchor = document.getElementById('modal-visuals');
             visAnchor.href = idea.visuals.startsWith('http') ? idea.visuals : `https://${idea.visuals}`;
             visContainer.classList.remove('hidden');
           } else {
             visContainer.classList.add('hidden');
           }
 
-          const urlContainer = document.getElementById('modal-url-container')!;
+          const urlContainer = document.getElementById('modal-url-container');
           if (idea.target_url) {
-            const urlAnchor = document.getElementById('modal-url') as HTMLAnchorElement;
+            const urlAnchor = document.getElementById('modal-url');
             urlAnchor.href = idea.target_url.startsWith('http') ? idea.target_url : `https://${idea.target_url}`;
             urlContainer.classList.remove('hidden');
           } else {
             urlContainer.classList.add('hidden');
           }
 
-          const statusBadge = document.getElementById('modal-status-badge')!;
-          const statusMap: Record<string, string> = {
+          const statusBadge = document.getElementById('modal-status-badge');
+          const statusMap = {
             'pending': 'In afwachting',
             'in progress': 'Mee bezig',
             'done': 'Klaar'
@@ -489,22 +491,26 @@ const avatars: Record<string, string> = {
              'bg-gray-200 text-gray-700'
           }`;
 
-          modal?.classList.remove('hidden');
+          if (modal) modal.classList.remove('hidden');
         } catch (err) {
           console.error('Failed to parse data', err);
         }
       });
     });
 
-    modalClose?.addEventListener('click', () => {
-      modal?.classList.add('hidden');
-    });
+    if (modalClose) {
+       modalClose.addEventListener('click', () => {
+         if (modal) modal.classList.add('hidden');
+       });
+    }
 
-    modal?.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.classList.add('hidden');
-      }
-    });
+    if (modal) {
+       modal.addEventListener('click', (e) => {
+         if (e.target === modal) {
+           modal.classList.add('hidden');
+         }
+       });
+    }
 
   });
 </script>
