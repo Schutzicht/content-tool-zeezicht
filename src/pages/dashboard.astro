@@ -359,6 +359,10 @@ const avatars: Record<string, string> = {
             </div>
             <div id="modal-final-image-view" class="hidden">
               <img id="modal-final-image-display" src="" alt="Post visual" class="rounded-lg border border-gray-200 max-h-48 w-full object-cover" />
+              <a id="modal-download-btn" href="#" download class="mt-2 text-xs bg-brand-teal text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-navy transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Download afbeelding
+              </a>
             </div>
             <div class="flex gap-2">
               <button id="modal-copy-btn" type="button" class="flex-1 text-xs bg-brand-cyan text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-teal transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
@@ -378,8 +382,25 @@ const avatars: Record<string, string> = {
               <textarea id="modal-final-text" name="final_text" rows="5" placeholder="Schrijf hier de definitieve LinkedIn post tekst..." class="w-full text-sm border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 focus:border-brand-cyan resize-y bg-white"></textarea>
             </div>
             <div>
-              <label class="text-xs font-medium text-brand-slate block mb-1">Afbeelding URL (optioneel)</label>
-              <input type="url" id="modal-final-image" name="final_image_url" placeholder="https://drive.google.com/... of directe link naar afbeelding" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-brand-cyan/30 focus:border-brand-cyan bg-white" />
+              <label class="text-xs font-medium text-brand-slate block mb-1">Afbeelding uploaden (optioneel)</label>
+              <div id="upload-dropzone" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-brand-cyan transition-colors cursor-pointer relative">
+                <input type="file" id="modal-file-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <div id="upload-placeholder" class="flex flex-col items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                  <p class="text-xs text-gray-500">Klik of sleep een afbeelding hierheen</p>
+                  <p class="text-[10px] text-gray-400">PNG, JPG, WEBP (max 5MB)</p>
+                </div>
+                <div id="upload-preview" class="hidden">
+                  <img id="upload-preview-img" src="" alt="Preview" class="max-h-32 mx-auto rounded-lg border border-gray-200" />
+                  <p id="upload-file-name" class="text-[10px] text-gray-500 mt-1"></p>
+                </div>
+                <div id="upload-progress" class="hidden mt-2">
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="upload-progress-bar" class="bg-brand-cyan h-1.5 rounded-full transition-all" style="width: 0%"></div>
+                  </div>
+                  <p id="upload-status-text" class="text-[10px] text-brand-teal mt-1">Uploaden...</p>
+                </div>
+              </div>
             </div>
             <div class="flex gap-2">
               <button type="submit" class="flex-1 text-xs bg-brand-cyan text-white px-3 py-2 rounded-lg font-semibold hover:bg-brand-teal transition-colors cursor-pointer">Opslaan</button>
@@ -570,13 +591,14 @@ const avatars: Record<string, string> = {
 
             // Pre-fill form for editing
             document.getElementById('modal-final-text').value = idea.final_text;
-            document.getElementById('modal-final-image').value = idea.final_image_url || '';
 
-            // Image preview
+            // Image preview + download
             const imgView = document.getElementById('modal-final-image-view');
             const imgDisplay = document.getElementById('modal-final-image-display');
+            const downloadBtn = document.getElementById('modal-download-btn');
             if (idea.final_image_url) {
               imgDisplay.src = idea.final_image_url;
+              if (downloadBtn) downloadBtn.href = idea.final_image_url;
               imgView.classList.remove('hidden');
             } else {
               imgView.classList.add('hidden');
@@ -590,8 +612,65 @@ const avatars: Record<string, string> = {
             finalStatus.textContent = 'Nog niet uitgewerkt';
             finalStatus.className = 'text-[10px] px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700';
             document.getElementById('modal-final-text').value = '';
-            document.getElementById('modal-final-image').value = '';
             cancelEditBtn.classList.add('hidden');
+          }
+
+          // Reset upload zone
+          const uploadPlaceholder = document.getElementById('upload-placeholder');
+          const uploadPreview = document.getElementById('upload-preview');
+          const uploadProgress = document.getElementById('upload-progress');
+          const fileInput = document.getElementById('modal-file-input');
+          if (uploadPlaceholder) uploadPlaceholder.classList.remove('hidden');
+          if (uploadPreview) uploadPreview.classList.add('hidden');
+          if (uploadProgress) uploadProgress.classList.add('hidden');
+          if (fileInput) fileInput.value = '';
+
+          // File input change handler (preview + auto-upload)
+          if (fileInput) {
+            fileInput.onchange = async (ev) => {
+              const file = ev.target.files[0];
+              if (!file) return;
+
+              // Show preview
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                document.getElementById('upload-preview-img').src = e.target.result;
+                document.getElementById('upload-file-name').textContent = file.name;
+                uploadPlaceholder.classList.add('hidden');
+                uploadPreview.classList.remove('hidden');
+              };
+              reader.readAsDataURL(file);
+
+              // Upload to API
+              uploadProgress.classList.remove('hidden');
+              const progressBar = document.getElementById('upload-progress-bar');
+              const statusText = document.getElementById('upload-status-text');
+              progressBar.style.width = '30%';
+
+              const uploadData = new FormData();
+              uploadData.append('file', file);
+              uploadData.append('id', idea.id);
+
+              try {
+                progressBar.style.width = '60%';
+                const res = await fetch('/api/upload', { method: 'POST', body: uploadData });
+                const result = await res.json();
+
+                if (res.ok) {
+                  progressBar.style.width = '100%';
+                  statusText.textContent = '✅ Geüpload!';
+                  statusText.className = 'text-[10px] text-green-600 mt-1 font-medium';
+                  // Update idea object so view mode will show it
+                  idea.final_image_url = result.url;
+                } else {
+                  statusText.textContent = '❌ Upload mislukt: ' + (result.error || 'Onbekende fout');
+                  statusText.className = 'text-[10px] text-red-600 mt-1';
+                }
+              } catch (err) {
+                statusText.textContent = '❌ Upload mislukt';
+                statusText.className = 'text-[10px] text-red-600 mt-1';
+              }
+            };
           }
 
           // Edit button handler
