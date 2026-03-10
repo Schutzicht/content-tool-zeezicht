@@ -149,38 +149,43 @@ const phones: Record<string, string> = {
     <div class="flex-grow w-full xl:w-3/4">
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
         <!-- Calendar Header Controls -->
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <a href={prevMonthUrl} class="px-3 py-1.5 text-sm font-medium text-brand-teal hover:bg-brand-sky rounded-md transition-colors flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            Vorige
+        <!-- Calendar Header Controls -->
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-white">
+          <a href={prevMonthUrl} class="p-2 text-brand-teal hover:bg-brand-sky rounded-full transition-all flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </a>
-          <h2 class="text-xl font-bold text-brand-navy tracking-tight">{currentMonthName} {currentYear}</h2>
-          <a href={nextMonthUrl} class="px-3 py-1.5 text-sm font-medium text-brand-teal hover:bg-brand-sky rounded-md transition-colors flex items-center gap-1">
-            Volgende
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <h2 class="text-2xl font-black text-brand-navy tracking-tight italic uppercase">{currentMonthName} <span class="text-brand-cyan font-light not-italic">{currentYear}</span></h2>
+          <a href={nextMonthUrl} class="p-2 text-brand-teal hover:bg-brand-sky rounded-full transition-all flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </a>
         </div>
         
         <!-- Day Names -->
-        <div class="grid grid-cols-7 border-b border-gray-200 bg-gray-100">
+        <div class="grid grid-cols-7 border-b border-gray-100 bg-gray-50/50">
           {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map(day => (
-            <div class="py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider border-r last:border-r-0 border-gray-200">
+            <div class="py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
               {day}
             </div>
           ))}
         </div>
 
         <!-- Calendar Grids -->
-        <div class="grid grid-cols-7 auto-rows-[minmax(120px,_1fr)] flex-grow">
+        <div class="grid grid-cols-7 auto-rows-[minmax(140px,_1fr)] flex-grow">
           {calendarCells.map((cell, idx) => (
             <div 
-              class={`border-b border-r border-gray-100 last:border-r-0 relative group p-1 flex flex-col ${cell.inCurrentMonth ? 'bg-white' : 'bg-gray-50'}`}
+              class={`border-b border-r border-gray-50 last:border-r-0 relative group p-2 flex flex-col transition-colors ${
+                cell.inCurrentMonth ? 'bg-white' : 'bg-gray-50/30'
+              } ${cell.dateStr === new Date().toISOString().split('T')[0] ? 'bg-brand-sky/5' : ''}`}
               data-dropzone="true"
               data-date={cell.dateStr}
             >
               {cell.inCurrentMonth && (
-                <div class={`text-right w-full p-1 mb-1 text-sm font-semibold ${cell.dateStr === new Date().toISOString().split('T')[0] ? 'text-white' : 'text-gray-400'}`}>
-                  <span class={`inline-block w-6 h-6 text-center leading-6 rounded-full ${cell.dateStr === new Date().toISOString().split('T')[0] ? 'bg-brand-cyan' : ''}`}>
+                <div class="flex justify-between items-center mb-2">
+                  <span class={`w-7 h-7 flex items-center justify-center text-sm font-black rounded-full transition-all ${
+                    cell.dateStr === new Date().toISOString().split('T')[0] 
+                    ? 'bg-brand-cyan text-white shadow-lg shadow-brand-cyan/30 scale-110' 
+                    : 'text-brand-navy/30 group-hover:text-brand-navy'
+                  }`}>
                     {cell.dayNumber}
                   </span>
                 </div>
@@ -193,34 +198,38 @@ const phones: Record<string, string> = {
                     draggable="true" 
                     data-idea-id={idea.id}
                     data-idea={Buffer.from(JSON.stringify(idea)).toString('base64')}
-                    class="bg-brand-sky border border-brand-cyan/20 p-2 rounded cursor-pointer hover:shadow-sm transition-all relative idea-card"
+                    class="bg-white border border-gray-100 p-3 rounded-xl cursor-pointer shadow-sm hover:shadow-md hover:border-brand-sky transition-all relative idea-card group/card"
                   >
-                     <div class="flex items-center gap-1.5 mb-1">
-                       {avatars[idea.submitter] ? (
-                         <img src={avatars[idea.submitter]} alt={idea.submitter} class="w-5 h-5 rounded-full object-cover shrink-0 border border-white shadow-sm" />
-                       ) : (
-                         <div class="w-5 h-5 rounded-full bg-brand-cyan text-white flex items-center justify-center font-bold text-[10px] shrink-0 border border-white shadow-sm">
-                           {idea.submitter.charAt(0)}
-                         </div>
-                       )}
-                       <span class="text-[10px] font-semibold text-brand-teal truncate">{idea.submitter}</span>
+                     <div class="flex items-center justify-between gap-1.5 mb-2">
+                       <div class="flex items-center gap-1.5 min-w-0">
+                         {avatars[idea.submitter] ? (
+                           <img src={avatars[idea.submitter]} alt={idea.submitter} class="w-5 h-5 rounded-full object-cover shrink-0 border border-white shadow-sm" />
+                         ) : (
+                           <div class="w-5 h-5 rounded-full bg-brand-sky text-brand-teal flex items-center justify-center font-bold text-[10px] shrink-0 border border-white shadow-sm">
+                             {idea.submitter.charAt(0)}
+                           </div>
+                         )}
+                         <span class="text-[10px] font-bold text-brand-teal truncate uppercase tracking-wider">{idea.submitter}</span>
+                       </div>
+                       {idea.final_text && <span class="text-[10px]" title="Post staat klaar">✅</span>}
                      </div>
-                     <p class="text-[11px] leading-tight text-brand-navy line-clamp-2 break-words mb-1">{idea.idea}</p>
-                     <div class="flex items-center justify-between gap-1">
+
+                     <p class="text-[12px] leading-snug text-brand-navy font-semibold line-clamp-2 break-words mb-3 group-hover/card:text-brand-cyan transition-colors">{idea.idea}</p>
+                     
+                     <div class="flex items-center justify-between gap-1 pt-2 border-t border-gray-50">
                        <form method="POST" class="status-form" onclick="event.stopPropagation()">
                          <input type="hidden" name="id" value={idea.id} />
                          <input type="hidden" name="action" value="update_status" />
-                         <select name="status" class={`status-select text-[9px] px-1.5 py-0.5 rounded-full font-semibold cursor-pointer border-0 focus:outline-none ${
-                           idea.status === 'done' ? 'bg-green-100 text-green-700' :
-                           idea.status === 'in progress' ? 'bg-yellow-100 text-yellow-800' :
-                           'bg-gray-200 text-gray-600'
+                         <select name="status" class={`status-select text-[9px] px-2 py-1 rounded-full font-bold cursor-pointer border-0 focus:outline-none transition-colors ${
+                           idea.status === 'done' ? 'bg-green-50 text-green-700 hover:bg-green-100' :
+                           idea.status === 'in progress' ? 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100' :
+                           'bg-gray-50 text-gray-500 hover:bg-gray-100'
                          }`}>
                            <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ Wacht</option>
                            <option value="in progress" selected={idea.status === 'in progress'}>🔄 Bezig</option>
                            <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
                          </select>
                        </form>
-                       {idea.final_text && <span class="text-[8px] text-green-600 font-medium">📝</span>}
                      </div>
                   </div>
                 ))}
@@ -232,10 +241,10 @@ const phones: Record<string, string> = {
     </div>
 
     <!-- RIGHT: Unplanned / Backlog Area -->
-    <div class="w-full xl:w-1/4 mt-8 xl:mt-0 xl:sticky xl:top-8 bg-gray-50 border border-gray-200 rounded-xl flex flex-col max-h-[85vh]">
-      <div class="p-4 border-b border-gray-200 bg-white rounded-t-xl flex items-center justify-between">
-         <h3 class="font-bold text-brand-navy">Ideeën <span class="text-gray-400 text-xs font-normal">({backlogIdeas.length})</span></h3>
-         <div class="text-xs text-brand-teal bg-brand-sky px-2 py-1 rounded font-medium">Nog in te plannen</div>
+    <div class="w-full xl:w-1/4 mt-8 xl:mt-0 xl:sticky xl:top-28 bg-white/70 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl shadow-brand-navy/5 flex flex-col max-h-[calc(100vh-140px)]">
+      <div class="p-5 border-b border-gray-100/50 bg-white/50 flex items-center justify-between">
+         <h3 class="text-lg font-black text-brand-navy tracking-tight uppercase italic">Ideeën <span class="text-brand-cyan not-italic">Backlog</span></h3>
+         <div class="bg-brand-sky text-brand-teal text-[10px] font-bold px-2 py-0.5 rounded-full">{backlogIdeas.length}</div>
       </div>
       
       <!-- Backlog Dropzone -->
@@ -244,61 +253,74 @@ const phones: Record<string, string> = {
         data-dropzone="true"
         data-date="null"
       >
-        {backlogIdeas.length === 0 ? (
-          <p class="text-sm text-gray-500 italic text-center py-8">Alle ideeën zijn ingepland!</p>
-        ) : (
-          backlogIdeas.map(idea => (
-            <div 
-              draggable="true" 
-              data-idea-id={idea.id}
-              data-idea={Buffer.from(JSON.stringify(idea)).toString('base64')}
-              class="bg-white border border-gray-200 p-3 rounded-lg shadow-sm cursor-pointer hover:shadow hover:border-brand-cyan transition-all group relative idea-card"
-            >
-               <div class="flex items-start justify-between gap-2 mb-2">
-                 <div class="flex items-center gap-2">
-                   {avatars[idea.submitter] ? (
-                     <img src={avatars[idea.submitter]} alt={idea.submitter} class="w-6 h-6 rounded-full object-cover shrink-0 border border-white shadow-sm" />
-                   ) : (
-                     <div class="w-6 h-6 rounded-full bg-brand-sky text-brand-cyan flex items-center justify-center font-bold text-xs shrink-0 border border-white shadow-sm">
-                       {idea.submitter.charAt(0)}
+          {backlogIdeas.length === 0 ? (
+            <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest">Backlog is leeg!</p>
+            </div>
+          ) : (
+            backlogIdeas.map(idea => (
+              <div 
+                draggable="true" 
+                data-idea-id={idea.id}
+                data-idea={Buffer.from(JSON.stringify(idea)).toString('base64')}
+                class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-lg hover:border-brand-sky/20 transition-all group relative idea-card"
+              >
+                 <div class="flex items-start justify-between gap-2 mb-3">
+                   <div class="flex items-center gap-2 min-w-0">
+                     {avatars[idea.submitter] ? (
+                       <img src={avatars[idea.submitter]} alt={idea.submitter} class="w-7 h-7 rounded-full object-cover shrink-0 border border-white shadow-sm" />
+                     ) : (
+                       <div class="w-7 h-7 rounded-full bg-brand-sky text-brand-teal flex items-center justify-center font-bold text-xs shrink-0 border border-white shadow-sm">
+                         {idea.submitter.charAt(0)}
+                       </div>
+                     )}
+                     <div class="min-w-0">
+                       <p class="font-bold text-brand-navy text-[10px] truncate uppercase tracking-wider">{idea.submitter}</p>
                      </div>
-                   )}
-                   <div class="min-w-0">
-                     <p class="font-semibold text-brand-navy text-xs truncate">{idea.submitter}</p>
+                   </div>
+                   <div class={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${
+                      idea.status === 'done' ? 'bg-green-50 text-green-600' :
+                      idea.status === 'in progress' ? 'bg-yellow-50 text-yellow-700' :
+                      'bg-gray-50 text-gray-400'
+                   }`}>
+                     {idea.status === 'done' ? 'KLAAR' : idea.status === 'in progress' ? 'BEZIG' : 'WACHT'}
                    </div>
                  </div>
-                 <div class={`text-[10px] px-1.5 py-0.5 rounded uppercase font-semibold tracking-wider ${
-                    idea.status === 'done' ? 'bg-green-100 text-green-700' :
-                    idea.status === 'in progress' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-600'
-                 }`}>
-                   {idea.status || 'pending'}
+                 
+                 <p class="text-sm font-semibold text-brand-navy leading-snug line-clamp-3 mb-3 group-hover:text-brand-cyan transition-colors">{idea.idea}</p>
+                 
+                 <div class="flex items-center gap-2">
+                    {idea.final_text && idea.final_text.length > 0 && (
+                      <span class="text-[9px] bg-green-50 text-green-600 px-2 py-0.5 rounded-md font-black uppercase tracking-tighter flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        Post klaar
+                      </span>
+                    )}
+                    {idea.hook && (
+                      <span class="text-[9px] bg-brand-sky text-brand-teal px-2 py-0.5 rounded-md font-bold truncate max-w-[100px]" title={idea.hook}>🪝 {idea.hook}</span>
+                    )}
                  </div>
-               </div>
-               
-               <p class="text-sm text-brand-slate line-clamp-3 mb-2">{idea.idea}</p>
-               {idea.final_text && <span class="text-[9px] inline-flex items-center gap-0.5 text-green-600 font-medium mb-1">✅ Post klaar</span>}
-               
-               {idea.hook && (
-                 <p class="text-xs text-brand-teal bg-brand-sky/50 p-1.5 rounded truncate mb-1">
-                   <span class="font-semibold">Haakje:</span> {idea.hook}
-                 </p>
-               )}
 
-               <!-- Hover Actions -->
-               <form method="POST" class="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity rounded-lg p-2 gap-2">
-                  <input type="hidden" name="id" value={idea.id} />
-                  <input type="hidden" name="action" value="update_status" />
-                  <select name="status" class="status-select text-xs p-1.5 border border-gray-300 rounded w-full bg-white cursor-pointer focus:outline-none">
-                     <option value="pending" selected={idea.status === 'pending' || !idea.status}>In afwachting</option>
-                     <option value="in progress" selected={idea.status === 'in progress'}>Mee bezig</option>
-                     <option value="done" selected={idea.status === 'done'}>Klaar</option>
-                  </select>
-                  <button type="button" formmethod="POST" name="action" value="delete" class="text-xs text-red-600 hover:text-red-800 cursor-pointer" onclick="if(confirm('Weet je het zeker?')) { this.form.action.value='delete'; this.form.submit(); }">Verwijderen</button>
-               </form>
-            </div>
-          ))
-        )}
+                 <!-- Hover Actions -->
+                 <form method="POST" class="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity rounded-xl p-3 gap-3">
+                    <input type="hidden" name="id" value={idea.id} />
+                    <input type="hidden" name="action" value="update_status" />
+                    <div class="w-full space-y-2">
+                      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status aanpassen</p>
+                      <select name="status" class="status-select text-xs p-2.5 border border-gray-100 rounded-lg w-full bg-white shadow-sm cursor-pointer focus:outline-none font-bold text-brand-navy">
+                         <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ In afwachting</option>
+                         <option value="in progress" selected={idea.status === 'in progress'}>🔄 Mee bezig</option>
+                         <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
+                      </select>
+                    </div>
+                    <button type="button" formmethod="POST" name="action" value="delete" class="text-[11px] font-bold text-red-500 hover:text-red-700 cursor-pointer transition-colors mt-2" onclick="if(confirm('Weet je het zeker?')) { this.form.action.value='delete'; this.form.submit(); }">🗑️ Verwijderen</button>
+                 </form>
+              </div>
+            ))
+          )}
       </div>
     </div>
   </div>
