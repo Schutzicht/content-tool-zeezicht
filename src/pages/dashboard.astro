@@ -22,13 +22,12 @@ if (Astro.request.method === 'POST') {
       if (error) console.error(error);
     } else if (id && action === 'update_final') {
       const finalText = data.get('final_text');
-      const finalImageUrl = data.get('final_image_url');
+      // Image is uploaded separately via /api/upload, so we don't touch final_image_url here
       const { error } = await supabase.from('content_ideas').update({
         final_text: finalText?.toString() || null,
-        final_image_url: finalImageUrl?.toString() || null,
         status: 'done'
       }).eq('id', id.toString());
-      if (error) console.error(error);
+      if (error) console.error('update_final error:', error);
     }
   } catch (err) {
     console.error('Action failed:', err);
