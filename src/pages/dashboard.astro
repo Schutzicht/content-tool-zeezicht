@@ -120,6 +120,12 @@ const avatars: Record<string, string> = {
   'Jorian': 'https://zeezichtwebsitecms-production.up.railway.app/assets/582b20ad-b110-43f1-8d5e-1fcbf80869bb',
   'Ruben': 'https://zeezichtwebsitecms-production.up.railway.app/assets/683c0474-6aab-44aa-a5bc-2e64c3090010'
 };
+
+const phones: Record<string, string> = {
+  'Jorik': '31657946199',
+  'Jorian': '31644993028',
+  'Ruben': '31681383601'
+};
 ---
 
 <Layout title="Contentkalender - Pheadra">
@@ -204,7 +210,7 @@ const avatars: Record<string, string> = {
                        <form method="POST" class="status-form" onclick="event.stopPropagation()">
                          <input type="hidden" name="id" value={idea.id} />
                          <input type="hidden" name="action" value="update_status" />
-                         <select name="status" onchange="this.form.submit()" class={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold cursor-pointer border-0 focus:outline-none ${
+                         <select name="status" class={`status-select text-[9px] px-1.5 py-0.5 rounded-full font-semibold cursor-pointer border-0 focus:outline-none ${
                            idea.status === 'done' ? 'bg-green-100 text-green-700' :
                            idea.status === 'in progress' ? 'bg-yellow-100 text-yellow-800' :
                            'bg-gray-200 text-gray-600'
@@ -283,7 +289,7 @@ const avatars: Record<string, string> = {
                <form method="POST" class="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity rounded-lg p-2 gap-2">
                   <input type="hidden" name="id" value={idea.id} />
                   <input type="hidden" name="action" value="update_status" />
-                  <select name="status" onchange="this.form.submit()" class="text-xs p-1.5 border border-gray-300 rounded w-full bg-white cursor-pointer focus:outline-none">
+                  <select name="status" class="status-select text-xs p-1.5 border border-gray-300 rounded w-full bg-white cursor-pointer focus:outline-none">
                      <option value="pending" selected={idea.status === 'pending' || !idea.status}>In afwachting</option>
                      <option value="in progress" selected={idea.status === 'in progress'}>Mee bezig</option>
                      <option value="done" selected={idea.status === 'done'}>Klaar</option>
@@ -435,9 +441,10 @@ const avatars: Record<string, string> = {
   </div>
 </Layout>
 
-<script define:vars={{ avatars }}>
-  // Pass avatars to window for the modal
+<script define:vars={{ avatars, phones }}>
+  // Pass data to window for the modal and WhatsApp
   window.avatarsMap = avatars;
+  window.phonesMap = phones;
 
   // Setup HTML5 Drag and Drop logic
   document.addEventListener('DOMContentLoaded', () => {
@@ -461,6 +468,47 @@ const avatars: Record<string, string> = {
         document.querySelectorAll('[data-dropzone="true"]').forEach(zone => {
           zone.classList.remove('bg-brand-sky/50', 'ring-2', 'ring-inset', 'ring-brand-cyan');
         });
+      });
+    });
+
+    // 1b. Status select handlers (WhatsApp notification on 'done')
+    document.querySelectorAll('.status-select').forEach(select => {
+      select.addEventListener('change', (e) => {
+        const form = e.target.closest('form');
+        const newStatus = e.target.value;
+        
+        if (newStatus === 'done') {
+          // Find the parent idea card to get data
+          const card = e.target.closest('.idea-card');
+          if (card) {
+            const dataStr = card.getAttribute('data-idea');
+            if (dataStr) {
+              try {
+                let idea;
+                try { idea = JSON.parse(decodeURIComponent(escape(atob(dataStr)))); }
+                catch(err) { idea = JSON.parse(atob(dataStr)); }
+                
+                const phone = window.phonesMap ? window.phonesMap[idea.submitter] : null;
+                if (phone) {
+                  let msg = `Hey ${idea.submitter}! 👋\n\nJe LinkedIn post staat klaar in Pheadra! 🎉\n\n`;
+                  if (idea.final_text) {
+                    msg += `📝 *Tekst:*\n${idea.final_text}\n\n`;
+                  }
+                  if (idea.final_image_url) {
+                    msg += `🖼️ *Afbeelding:* ${idea.final_image_url}\n\n`;
+                  }
+                  msg += `Je kan hem nu zelf plaatsen op LinkedIn! 💪`;
+                  
+                  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+              } catch(err) {
+                console.error('WhatsApp parse error:', err);
+              }
+            }
+          }
+        }
+        
+        if (form) form.submit();
       });
     });
 
