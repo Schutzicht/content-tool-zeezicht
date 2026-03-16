@@ -121,7 +121,7 @@ const avatars: Record<string, string> = {
   'Jorik': 'https://zeezichtwebsitecms-production.up.railway.app/assets/46afab71-4fc1-4d4d-a747-7c34bed81207',
   'Jorian': 'https://zeezichtwebsitecms-production.up.railway.app/assets/582b20ad-b110-43f1-8d5e-1fcbf80869bb',
   'Ruben': 'https://zeezichtwebsitecms-production.up.railway.app/assets/683c0474-6aab-44aa-a5bc-2e64c3090010',
-  'Fedra': null,
+  'Phaedra': null,
   'ZeeZicht': null
 };
 
@@ -129,12 +129,12 @@ const phones: Record<string, string> = {
   'Jorik': '31657946199',
   'Jorian': '31644993028',
   'Ruben': '31681383601',
-  'Fedra': '31600000000',
+  'Phaedra': '31600000000',
   'ZeeZicht': '31600000000'
 };
 ---
 
-<Layout title="Contentkalender - Pheadra">
+<Layout title="Contentkalender - Phaedra">
   <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <h1 class="text-3xl font-bold tracking-tight text-brand-navy mb-2">Contentkalender</h1>
@@ -238,17 +238,14 @@ const phones: Record<string, string> = {
                         </form>
                       </div>
 
-                      <!-- Hover Actions: Delete -->
-                      <div class="absolute inset-0 bg-white/95 opacity-0 group-hover/card:opacity-100 flex items-center justify-center transition-opacity rounded-xl z-10" onclick="event.stopPropagation()">
-                        <form method="POST" class="flex flex-col items-center gap-1">
-                          <input type="hidden" name="id" value={idea.id} />
-                          <input type="hidden" name="action" value="delete" />
-                          <button type="submit" class="text-red-500 hover:text-red-700 p-2 transition-colors cursor-pointer" onclick="return confirm('Dit bericht definitief verwijderen?')">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                            <span class="text-[9px] font-black uppercase tracking-tighter block mt-0.5">Wissen</span>
-                          </button>
-                        </form>
-                      </div>
+                      <!-- Corner Delete Button -->
+                      <form method="POST" class="absolute top-1 right-1 opacity-0 group-hover/card:opacity-100 transition-opacity z-20" onclick="event.stopPropagation()">
+                        <input type="hidden" name="id" value={idea.id} />
+                        <input type="hidden" name="action" value="delete" />
+                        <button type="submit" class="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Verwijderen" onclick="return confirm('Dit bericht definitief verwijderen?')">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                      </form>
                    </div>
                 ))}
               </div>
@@ -322,24 +319,32 @@ const phones: Record<string, string> = {
                         Post klaar
                       </span>
                     )}
-                    {idea.hook && (
-                      <span class="text-[9px] bg-brand-sky text-brand-teal px-2 py-0.5 rounded-md font-bold truncate max-w-[100px]" title={idea.hook}>🪝 {idea.hook}</span>
-                    )}
-                 </div>
-
-                 <!-- Hover Actions -->
-                 <form method="POST" class="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity rounded-xl p-3 gap-3">
-                    <input type="hidden" name="id" value={idea.id} />
-                    <input type="hidden" name="action" value="update_status" />
-                    <div class="w-full space-y-2">
-                      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status aanpassen</p>
-                      <select name="status" class="status-select text-xs p-2.5 border border-gray-100 rounded-lg w-full bg-white shadow-sm cursor-pointer focus:outline-none font-bold text-brand-navy">
-                         <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ In afwachting</option>
-                         <option value="in progress" selected={idea.status === 'in progress'}>🔄 Mee bezig</option>
+                  <div class="flex items-center justify-between gap-1 pt-3 border-t border-gray-50">
+                     <form method="POST" class="status-form" onclick="event.stopPropagation()">
+                       <input type="hidden" name="id" value={idea.id} />
+                       <input type="hidden" name="action" value="update_status" />
+                       <select name="status" class={`status-select text-[9px] px-2 py-1 rounded-full font-bold cursor-pointer border-0 focus:outline-none transition-colors ${
+                         idea.status === 'done' ? 'bg-green-50 text-green-700 hover:bg-green-100' :
+                         idea.status === 'in progress' ? 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100' :
+                         'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                       }`}>
+                         <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ Wacht</option>
+                         <option value="in progress" selected={idea.status === 'in progress'}>🔄 Bezig</option>
                          <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
-                      </select>
-                    </div>
-                    <button type="button" formmethod="POST" name="action" value="delete" class="text-[11px] font-bold text-red-500 hover:text-red-700 cursor-pointer transition-colors mt-2" onclick="if(confirm('Weet je het zeker?')) { this.form.action.value='delete'; this.form.submit(); }">🗑️ Verwijderen</button>
+                       </select>
+                     </form>
+                     {idea.hook && (
+                       <span class="text-[9px] bg-brand-sky text-brand-teal px-2 py-0.5 rounded-md font-bold truncate max-w-[80px]" title={idea.hook}>🪝 {idea.hook.substring(0, 10)}...</span>
+                     )}
+                  </div>
+
+                 <!-- Corner Delete Button -->
+                 <form method="POST" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20" onclick="event.stopPropagation()">
+                    <input type="hidden" name="id" value={idea.id} />
+                    <input type="hidden" name="action" value="delete" />
+                    <button type="submit" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer" title="Verwijderen" onclick="return confirm('Weet je het zeker?')">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
                  </form>
               </div>
             ))
@@ -384,7 +389,20 @@ const phones: Record<string, string> = {
                  
                  <p class="text-sm font-semibold text-brand-navy leading-snug line-clamp-2 mb-2 group-hover:text-brand-cyan transition-colors">{idea.idea}</p>
                  
-                 <div class="flex items-center justify-between">
+                 <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+                    <form method="POST" class="status-form" onclick="event.stopPropagation()">
+                      <input type="hidden" name="id" value={idea.id} />
+                      <input type="hidden" name="action" value="update_status" />
+                      <select name="status" class={`status-select text-[9px] px-2 py-1 rounded-full font-bold cursor-pointer border-0 focus:outline-none transition-colors ${
+                        idea.status === 'done' ? 'bg-green-50 text-green-700 hover:bg-green-100' :
+                        idea.status === 'in progress' ? 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100' :
+                        'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                      }`}>
+                        <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ Wacht</option>
+                        <option value="in progress" selected={idea.status === 'in progress'}>🔄 Bezig</option>
+                        <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
+                      </select>
+                    </form>
                     <div class="flex items-center gap-1.5 min-w-0">
                       {avatars[idea.submitter] ? (
                         <img src={avatars[idea.submitter]} alt={idea.submitter} class="w-5 h-5 rounded-full object-cover shrink-0" />
@@ -395,20 +413,16 @@ const phones: Record<string, string> = {
                       )}
                       <span class="text-[10px] font-bold text-gray-400 truncate uppercase tracking-tighter">{idea.submitter}</span>
                     </div>
-                    {idea.final_text && idea.final_text.length > 0 && <span class="text-[10px]">✅</span>}
                  </div>
 
-                 <!-- Hover Actions: Delete -->
-                 <div class="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl z-10" onclick="event.stopPropagation()">
-                    <form method="POST" class="flex flex-col items-center gap-1">
-                      <input type="hidden" name="id" value={idea.id} />
-                      <input type="hidden" name="action" value="delete" />
-                      <button type="submit" class="text-red-500 hover:text-red-700 p-2 transition-colors cursor-pointer" onclick="return confirm('Dit bericht definitief verwijderen?')">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                        <span class="text-[9px] font-black uppercase tracking-tighter block mt-0.5">Wissen</span>
-                      </button>
-                    </form>
-                 </div>
+                 <!-- Corner Delete Button -->
+                 <form method="POST" class="flex flex-col items-center gap-1 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20" onclick="event.stopPropagation()">
+                    <input type="hidden" name="id" value={idea.id} />
+                    <input type="hidden" name="action" value="delete" />
+                    <button type="submit" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer" title="Verwijderen" onclick="return confirm('Dit bericht definitief verwijderen?')">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                 </form>
               </div>
             ))
           )}
@@ -462,12 +476,12 @@ const phones: Record<string, string> = {
           </div>
         </div>
 
-        <!-- Uitwerking Section (Pheadra fills in, team copies) -->
+        <!-- Uitwerking Section (Phaedra fills in, team copies) -->
         <div class="pt-4 border-t border-gray-100">
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-xs uppercase tracking-wider font-semibold text-brand-teal flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
-              Uitwerking door Pheadra
+              Uitwerking door Phaedra
             </h4>
             <span id="modal-final-status" class="text-[10px] px-2 py-0.5 rounded-full font-medium"></span>
           </div>
@@ -603,7 +617,7 @@ const phones: Record<string, string> = {
                 
                 const phone = window.phonesMap ? window.phonesMap[idea.submitter] : null;
                 if (phone) {
-                  let msg = `Hey ${idea.submitter}! 👋\n\nJe LinkedIn post staat klaar in Pheadra! 🎉\n\n`;
+                  let msg = `Hey ${idea.submitter}! 👋\n\nJe LinkedIn post staat klaar in Phaedra! 🎉\n\n`;
                   if (idea.final_text) {
                     msg += `📝 *Tekst:*\n${idea.final_text}\n\n`;
                   }
