@@ -120,13 +120,17 @@ const plannedIdeasByDate = allIdeas.filter(i => i.planned_date).reduce((acc, ide
 const avatars: Record<string, string> = {
   'Jorik': 'https://zeezichtwebsitecms-production.up.railway.app/assets/46afab71-4fc1-4d4d-a747-7c34bed81207',
   'Jorian': 'https://zeezichtwebsitecms-production.up.railway.app/assets/582b20ad-b110-43f1-8d5e-1fcbf80869bb',
-  'Ruben': 'https://zeezichtwebsitecms-production.up.railway.app/assets/683c0474-6aab-44aa-a5bc-2e64c3090010'
+  'Ruben': 'https://zeezichtwebsitecms-production.up.railway.app/assets/683c0474-6aab-44aa-a5bc-2e64c3090010',
+  'Fedra': null,
+  'ZeeZicht': null
 };
 
 const phones: Record<string, string> = {
   'Jorik': '31657946199',
   'Jorian': '31644993028',
-  'Ruben': '31681383601'
+  'Ruben': '31681383601',
+  'Fedra': '31600000000',
+  'ZeeZicht': '31600000000'
 };
 ---
 
@@ -218,22 +222,34 @@ const phones: Record<string, string> = {
 
                      <p class="text-[12px] leading-snug text-brand-navy font-semibold line-clamp-2 break-words mb-3 group-hover/card:text-brand-cyan transition-colors">{idea.idea}</p>
                      
-                     <div class="flex items-center justify-between gap-1 pt-2 border-t border-gray-50">
-                       <form method="POST" class="status-form" onclick="event.stopPropagation()">
-                         <input type="hidden" name="id" value={idea.id} />
-                         <input type="hidden" name="action" value="update_status" />
-                         <select name="status" class={`status-select text-[9px] px-2 py-1 rounded-full font-bold cursor-pointer border-0 focus:outline-none transition-colors ${
-                           idea.status === 'done' ? 'bg-green-50 text-green-700 hover:bg-green-100' :
-                           idea.status === 'in progress' ? 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100' :
-                           'bg-gray-50 text-gray-500 hover:bg-gray-100'
-                         }`}>
-                           <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ Wacht</option>
-                           <option value="in progress" selected={idea.status === 'in progress'}>🔄 Bezig</option>
-                           <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
-                         </select>
-                       </form>
-                     </div>
-                  </div>
+                      <div class="flex items-center justify-between gap-1 pt-2 border-t border-gray-50">
+                        <form method="POST" class="status-form" onclick="event.stopPropagation()">
+                          <input type="hidden" name="id" value={idea.id} />
+                          <input type="hidden" name="action" value="update_status" />
+                          <select name="status" class={`status-select text-[9px] px-2 py-1 rounded-full font-bold cursor-pointer border-0 focus:outline-none transition-colors ${
+                            idea.status === 'done' ? 'bg-green-50 text-green-700 hover:bg-green-100' :
+                            idea.status === 'in progress' ? 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100' :
+                            'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                          }`}>
+                            <option value="pending" selected={idea.status === 'pending' || !idea.status}>⏳ Wacht</option>
+                            <option value="in progress" selected={idea.status === 'in progress'}>🔄 Bezig</option>
+                            <option value="done" selected={idea.status === 'done'}>✅ Klaar</option>
+                          </select>
+                        </form>
+                      </div>
+
+                      <!-- Hover Actions: Delete -->
+                      <div class="absolute inset-0 bg-white/95 opacity-0 group-hover/card:opacity-100 flex items-center justify-center transition-opacity rounded-xl z-10" onclick="event.stopPropagation()">
+                        <form method="POST" class="flex flex-col items-center gap-1">
+                          <input type="hidden" name="id" value={idea.id} />
+                          <input type="hidden" name="action" value="delete" />
+                          <button type="submit" class="text-red-500 hover:text-red-700 p-2 transition-colors cursor-pointer" onclick="return confirm('Dit bericht definitief verwijderen?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                            <span class="text-[9px] font-black uppercase tracking-tighter block mt-0.5">Wissen</span>
+                          </button>
+                        </form>
+                      </div>
+                   </div>
                 ))}
               </div>
             </div>
@@ -380,6 +396,18 @@ const phones: Record<string, string> = {
                       <span class="text-[10px] font-bold text-gray-400 truncate uppercase tracking-tighter">{idea.submitter}</span>
                     </div>
                     {idea.final_text && idea.final_text.length > 0 && <span class="text-[10px]">✅</span>}
+                 </div>
+
+                 <!-- Hover Actions: Delete -->
+                 <div class="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl z-10" onclick="event.stopPropagation()">
+                    <form method="POST" class="flex flex-col items-center gap-1">
+                      <input type="hidden" name="id" value={idea.id} />
+                      <input type="hidden" name="action" value="delete" />
+                      <button type="submit" class="text-red-500 hover:text-red-700 p-2 transition-colors cursor-pointer" onclick="return confirm('Dit bericht definitief verwijderen?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        <span class="text-[9px] font-black uppercase tracking-tighter block mt-0.5">Wissen</span>
+                      </button>
+                    </form>
                  </div>
               </div>
             ))
